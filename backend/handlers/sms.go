@@ -196,19 +196,12 @@ func (t *TencentProvider) Send(phone, code string) error {
 }
 
 func getSMSProvider() SMSProvider {
-	// 优先使用环境变量，否则使用默认配置
 	secretID := os.Getenv("SMS_SECRET_ID")
 	secretKey := os.Getenv("SMS_SECRET_KEY")
 	appID := os.Getenv("SMS_SDK_APP_ID")
 	signName := os.Getenv("SMS_SIGN_NAME")
 	templateID := os.Getenv("SMS_TEMPLATE_ID")
 
-	if secretID == "" {
-		secretID = "AKIDlz775rPtFRYa7uToulHbhYAYhbGhtpWO"
-	}
-	if secretKey == "" {
-		secretKey = "e5Us67tSr32qQmunBKFvMZYLxLUP6uUu"
-	}
 	if appID == "" {
 		appID = "1600153558"
 	}
@@ -217,6 +210,12 @@ func getSMSProvider() SMSProvider {
 	}
 	if templateID == "" {
 		templateID = "1"
+	}
+
+	// 如果密钥未配置，降级为控制台输出模式
+	if secretID == "" || secretKey == "" {
+		fmt.Println("[SMS] 短信密钥未配置，使用控制台输出模式（验证码将打印到终端）")
+		return &ConsoleProvider{}
 	}
 
 	// 如果模板ID还是占位值，说明未配置真实模板，降级为控制台输出
