@@ -1,0 +1,83 @@
+# 编译产物
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+mall
+
+# 测试文件
+*_test.go
+
+# 临时文件
+*.tmp
+*.log
+*.swp
+
+# 环境配置
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# 数据库文件
+*.db
+*.sqlite
+
+# 上传的文件（本地测试用）
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# 工具文件（不部署）
+backend/check_db.go
+backend/update_pwd.go
+backend/create_sms.go
+
+# 旧备份目录
+mall-backend/
+mall/
+
+# 根目录临时文件（开发过程中产生的）
+admin_new.go
+banner.go
+captcha.go
+common_dl.js
+common_orig.js
+config_orig.go
+copy_banner.ps1
+copy_models.ps1
+create_sms.go
+fix_admin.go
+fix_models.ps1
+home.js
+import_db.go
+index_dl.html
+index_orig.html
+main.go
+main_new.go
+main_orig.go
+models.go
+models_orig.go
+orders_orig.html
+product_orig.html
+profile_dl.html
+profile_new.html
+profile_new.js
+profile_new2.html
+profile_orig.html
+profile_v3.html
+reset_pwd.go
+sms.go
+step1_models.ps1
+step2_banner.ps1
+step3_main.ps1
+step4_homejs.ps1
+style.css
+style_new.css
+style_v2.css
+test_pwd.go
+upload.go
+upload_v2.go
+user_orig.go
