@@ -1,0 +1,56 @@
+# Sealos 部署配置
+# 使用方法：在 Sealos 控制台创建应用，选择「从镜像部署」
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mall
+  labels:
+    app: mall
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mall
+  template:
+    metadata:
+      labels:
+        app: mall
+    spec:
+      containers:
+        - name: mall
+          image: <你的Docker镜像地址>
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: DB_HOST
+              value: "<MySQL数据库地址>"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASSWORD
+              value: "<MySQL密码>"
+            - name: DB_NAME
+              value: "mall"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mall
+spec:
+  selector:
+    app: mall
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP
