@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>优选商城 - 首页</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="css/style.css?v=4">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">优选商城</a>
+            <div class="header-search">
+                <div class="search-box">
+                    <input type="text" id="searchKeyword" class="search-input" placeholder="搜索商品名称..." onkeyup="if(event.key==='Enter')searchProducts()">
+                    <button class="search-btn" onclick="searchProducts()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="header-right">
+                <a href="index.html" class="cart-link">首页</a>
+                <a href="javascript:void(0)" id="cartLink" class="cart-link" onclick="goCart()">购物车 (<span id="cartBadge">0</span>)</a>
+                <div id="userArea">
+                    <button class="btn btn-outline" onclick="showModal('loginModal')">登录</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 分类导航 -->
+    <nav class="nav">
+        <div class="container nav-inner-wrapper">
+            <div class="nav-inner" id="categoryNav">
+                <a href="#" class="nav-item active" data-cid="0" onclick="filterByCategory(0)">全部</a>
+            </div>
+            <div class="nav-filters">
+                <div class="filter-group">
+                    <input type="number" id="filterMinPrice" class="filter-input" placeholder="最低价" min="0">
+                    <span class="filter-sep">-</span>
+                    <input type="number" id="filterMaxPrice" class="filter-input" placeholder="最高价" min="0">
+                    <button class="filter-apply" onclick="searchProducts()">确定</button>
+                </div>
+                <select id="filterSort" class="filter-select" onchange="searchProducts()">
+                    <option value="">默认排序</option>
+                    <option value="price_asc">价格 ↑</option>
+                    <option value="price_desc">价格 ↓</option>
+                    <option value="sales">销量优先</option>
+                </select>
+                <button class="filter-reset" onclick="resetFilters()">重置</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 商品列表 -->
+    <main class="main container">
+        <div class="product-grid" id="productGrid"></div>
+    </main>
+
+    <!-- 登录弹窗 -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>登录</h3>
+                <button class="btn-text" onclick="closeModal('loginModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label>用户名/手机号</label><input type="text" id="loginUsername" placeholder="请输入用户名或手机号"></div>
+                <div class="form-group"><label>密码</label><input type="password" id="loginPassword" placeholder="请输入密码"></div>
+                <div class="form-group">
+                    <label>验证码</label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <span id="loginCaptchaQuestion" style="font-weight:bold;font-size:20px;font-family:'Courier New',monospace;min-width:80px;background:linear-gradient(135deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);padding:6px 14px;border-radius:4px;text-align:center;letter-spacing:4px;color:#333;user-select:none;border:1px dashed #ccc">加载中...</span>
+                        <input type="text" id="loginCaptchaAnswer" placeholder="请输入答案" style="flex:1">
+                        <input type="hidden" id="loginCaptchaToken">
+                        <a href="javascript:void(0)" onclick="loadCaptcha('login')" style="font-size:12px;white-space:nowrap">换一个</a>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="login()">登录</button>
+                <p class="text-center" style="margin-top:12px">没有账号？<a href="#" onclick="showModal('registerModal');closeModal('loginModal')">立即注册</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册弹窗 -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>注册</h3>
+                <button class="btn-text" onclick="closeModal('registerModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label>用户名</label><input type="text" id="regUsername" placeholder="请输入用户名"></div>
+                <div class="form-group"><label>昵称</label><input type="text" id="regNickname" placeholder="请输入昵称"></div>
+                <div class="form-group"><label>密码</label><input type="password" id="regPassword" placeholder="请输入密码"></div>
+                <div class="form-group"><label>手机号</label><input type="text" id="regPhone" placeholder="请输入手机号" maxlength="11"></div>
+                <div class="form-group">
+                    <label>短信验证码</label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <input type="text" id="regSMSCode" placeholder="请输入验证码" style="flex:1" maxlength="6">
+                        <button id="sendSMSBtn" class="btn btn-outline" onclick="sendSMS()" style="white-space:nowrap;font-size:13px">发送验证码</button>
+                    </div>
+                    <div id="smsDebugCode" style="margin-top:6px;padding:8px 12px;background:#e8f5e9;border-radius:4px;color:#2e7d32;font-size:14px;display:none"></div>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="register()">注册</button>
+                <p class="text-center" style="margin-top:12px">已有账号？<a href="#" onclick="showModal('loginModal');closeModal('registerModal')">去登录</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js?v=7"></script>
+    <script src="js/home.js?v=2"></script>
+</body>
+</html>
