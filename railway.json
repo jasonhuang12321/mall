@@ -1,4 +1,8 @@
 {
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "cd backend && go build -o mall ."
+  },
   "deploy": {
     "startCommand": "cd backend && FRONTEND_PATH=../frontend ./mall",
     "restartPolicyType": "ON_FAILURE"
