@@ -3,88 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的订单 - 优选商城</title>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="css/style.css?v=4">
+    <title>我的订单 - Shop</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-    <header class="header">
-        <div class="container header-inner">
-            <a href="index.html" class="logo">优选商城</a>
-            <div class="header-right">
-                <a href="index.html" class="cart-link">首页</a>
-                <a href="javascript:void(0)" id="cartLink" class="cart-link" onclick="goCart()">购物车 (<span id="cartBadge">0</span>)</a>
-                <div id="userArea">
-                    <button class="btn btn-outline" onclick="showModal('loginModal')">登录</button>
-                </div>
-            </div>
-        </div>
-    </header>
+<body data-page="orders">
+    <div id="navbar"></div>
 
-    <main class="main container">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-            <h2>我的订单</h2>
-            <div>
-                <a href="index.html" style="font-size:14px;color:var(--primary);text-decoration:none">返回首页</a>
-                <a href="profile.html" style="font-size:14px;color:var(--primary);text-decoration:none;margin-left:16px">个人中心</a>
-            </div>
-        </div>
-        <div id="orderList"></div>
-    </main>
-
-    <!-- 登录弹窗 -->
-    <div class="modal" id="loginModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>登录</h3>
-                <button class="btn-text" onclick="closeModal('loginModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group"><label>用户名/手机号</label><input type="text" id="loginUsername" placeholder="请输入用户名或手机号"></div>
-                <div class="form-group"><label>密码</label><input type="password" id="loginPassword" placeholder="请输入密码"></div>
-                <div class="form-group">
-                    <label>验证码</label>
-                    <div style="display:flex;align-items:center;gap:10px">
-                        <span id="loginCaptchaQuestion" style="font-weight:bold;font-size:20px;font-family:'Courier New',monospace;min-width:80px;background:linear-gradient(135deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);padding:6px 14px;border-radius:4px;text-align:center;letter-spacing:4px;color:#333;user-select:none;border:1px dashed #ccc">加载中...</span>
-                        <input type="text" id="loginCaptchaAnswer" placeholder="请输入答案" style="flex:1">
-                        <input type="hidden" id="loginCaptchaToken">
-                        <a href="javascript:void(0)" onclick="loadCaptcha('login')" style="font-size:12px;white-space:nowrap">换一个</a>
-                    </div>
-                </div>
-                <button class="btn btn-primary btn-block" onclick="login()">登录</button>
-                <p class="text-center" style="margin-top:12px">没有账号？<a href="#" onclick="showModal('registerModal');closeModal('loginModal')">立即注册</a></p>
-            </div>
-        </div>
+    <div class="container">
+        <h2 style="margin-bottom:24px">我的订单</h2>
+        <div id="ordersContent"></div>
     </div>
 
-    <div class="modal" id="registerModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>注册</h3>
-                <button class="btn-text" onclick="closeModal('registerModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group"><label>用户名</label><input type="text" id="regUsername" placeholder="请输入用户名"></div>
-                <div class="form-group"><label>昵称</label><input type="text" id="regNickname" placeholder="请输入昵称"></div>
-                <div class="form-group"><label>密码</label><input type="password" id="regPassword" placeholder="请输入密码"></div>
-                <div class="form-group"><label>手机号</label><input type="text" id="regPhone" placeholder="请输入手机号" maxlength="11"></div>
-                <div class="form-group">
-                    <label>短信验证码</label>
-                    <div style="display:flex;align-items:center;gap:10px">
-                        <input type="text" id="regSMSCode" placeholder="请输入验证码" style="flex:1" maxlength="6">
-                        <button id="sendSMSBtn" class="btn btn-outline" onclick="sendSMS()" style="white-space:nowrap;font-size:13px">发送验证码</button>
-                    </div>
-                    <div id="smsDebugCode" style="margin-top:6px;padding:8px 12px;background:#e8f5e9;border-radius:4px;color:#2e7d32;font-size:14px;display:none"></div>
-                </div>
-                <button class="btn btn-primary btn-block" onclick="register()">注册</button>
-                <p class="text-center" style="margin-top:12px">已有账号？<a href="#" onclick="showModal('loginModal');closeModal('registerModal')">去登录</a></p>
-            </div>
-        </div>
-    </div>
+    <script src="js/api.js"></script>
+    <script>
+        requireAuth();
 
-    <script src="js/common.js?v=7"></script>
-    <script src="js/orders.js?v=2"></script>
+        const statusMap = {
+            'PENDING': '待支付',
+            'PAID': '已支付',
+            'SHIPPED': '已发货',
+            'COMPLETED': '已完成',
+            'CANCELLED': '已取消'
+        };
+
+        async function init() {
+            await loadOrders();
+        }
+
+        async function loadOrders() {
+            try {
+                const orders = await api.get('/orders');
+                renderOrders(orders);
+            } catch (e) {
+                showToast('加载订单失败', 'error');
+            }
+        }
+
+        function renderOrders(orders) {
+            const container = document.getElementById('ordersContent');
+            if (orders.length === 0) {
+                container.innerHTML = '<div class="cart-empty">暂无订单</div>';
+                return;
+            }
+
+            container.innerHTML = orders.map(order => `
+                <div class="order-card">
+                    <div class="order-header">
+                        <span class="order-no">订单号：${order.orderNo}</span>
+                        <span class="order-status ${order.status}">${statusMap[order.status] || order.status}</span>
+                        <span style="color:#999;font-size:13px">${new Date(order.createdAt).toLocaleString('zh-CN')}</span>
+                    </div>
+                    <div class="order-items">
+                        ${order.items.map(item => `
+                            <div class="order-item">
+                                <span>${item.productName} x ${item.quantity}</span>
+                                <span>${formatPrice(item.productPrice * item.quantity)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="order-total">合计：${formatPrice(order.totalAmount)}</div>
+                </div>
+            `).join('');
+        }
+
+        init();
+    </script>
 </body>
 </html>

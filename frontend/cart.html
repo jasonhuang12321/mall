@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车 - Shop</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="cart">
+    <div id="navbar"></div>
+
+    <div class="container cart-page">
+        <h2>我的购物车</h2>
+        <div id="cartContent"></div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        requireAuth();
+        let cartItems = [];
+
+        async function init() {
+            await loadCart();
+        }
+
+        async function loadCart() {
+            try {
+                cartItems = await api.get('/cart');
+                renderCart();
+            } catch (e) {
+                showToast('加载购物车失败', 'error');
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartContent');
+            if (cartItems.length === 0) {
+                container.innerHTML = `
+                    <div class="cart-empty">购物车是空的，去<a href="index.html">首页</a>逛逛吧</div>
+                `;
+                return;
+            }
+
+            let total = 0;
+            const rows = cartItems.map(item => {
+                const subtotal = item.product.price * item.quantity;
+                total += subtotal;
+                return `
+                    <tr>
+                        <td><img src="${item.product.imageUrl || 'https://picsum.photos/seed/' + item.product.id + '/80/80'}" width="80" height="80" style="object-fit:cover;border-radius:4px"></td>
+                        <td>${item.product.name}</td>
+                        <td>${formatPrice(item.product.price)}</td>
+                        <td>
+                            <input type="number" class="qty-input" value="${item.quantity}" min="1" max="${item.product.stock}"
+                                   onchange="updateQty(${item.id}, this.value)">
+                        </td>
+                        <td>${formatPrice(subtotal)}</td>
+                        <td><a href="#" class="remove-btn" onclick="removeItem(${item.id}); return false;">删除</a></td>
+                    </tr>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="cart-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>图片</th>
+                                <th>名称</th>
+                                <th>单价</th>
+                                <th>数量</th>
+                                <th>小计</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+                <div class="cart-footer">
+                    <span class="total">合计：<span>${formatPrice(total)}</span></span>
+                    <button class="btn btn-primary" onclick="checkout()">结算</button>
+                </div>
+            `;
+        }
+
+        async function updateQty(itemId, qty) {
+            const quantity = parseInt(qty);
+            if (quantity <= 0) {
+                await removeItem(itemId);
+                return;
+            }
+            try {
+                await api.put('/cart/' + itemId, { quantity });
+                await loadCart();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        async function removeItem(itemId) {
+            try {
+                await api.delete('/cart/' + itemId);
+                showToast('已删除');
+                await loadCart();
+                loadCartCount();
+            } catch (e) {
+                showToast('删除失败', 'error');
+            }
+        }
+
+        async function checkout() {
+            const items = cartItems.map(item => ({
+                productId: item.product.id,
+                quantity: item.quantity
+            }));
+
+            try {
+                await api.post('/orders', { items });
+                showToast('下单成功');
+                setTimeout(() => window.location.href = 'orders.html', 500);
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
